@@ -44,7 +44,7 @@ minecraft.buildBridgeLeft(-1, -8, 1.5, 10, 10, 10);``
 
 4. Alles zerstören: ``minecraft.megaDestruction();``
 
-5. Mission starten: ``minecraft.mission(1); // Mission 1: Destroy the Forest
+5. Mission starten: ``minecraft.mission(1); // Mission 1: Destroy the Forest <br>
 minecraft.mission(2); // Mission 2: Find your lost friend``
 
 
