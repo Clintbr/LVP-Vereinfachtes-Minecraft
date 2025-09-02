@@ -32,8 +32,9 @@ Entwickelt als Projekt für *Programmieren 2* an der THM von **Clint Bryan Nguen
 ## 🎮 Beispiele
 1. Welt erstellen
 
-   ```Minecrafts minecraft = new Minecrafts(30, 10, 30);
-minecraft.go();
+   ```bash
+   Minecrafts minecraft = new Minecrafts(30, 10, 30);
+   minecraft.go();
 
 3. Spieler hinzufügen und bewegen: ``minecraft.play(200, 200, 200); // Spielerfarbe
 minecraft.leftMove();
