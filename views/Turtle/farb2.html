@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Cube Class</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 50px auto;
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cubeCanvas" width="500" height="500"></canvas>
+  <script>
+    // --- Cube Class ---
+    class Cube {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.width = canvas.width;
+        this.height = canvas.height;
+
+        // 3D Cube vertices
+        this.vertices = [
+          { x: -1, y: -1, z: -1 }, // 0
+          { x:  1, y: -1, z: -1 }, // 1
+          { x:  1, y:  1, z: -1 }, // 2
+          { x: -1, y:  1, z: -1 }, // 3
+          { x: -1, y: -1, z:  1 }, // 4
+          { x:  1, y: -1, z:  1 }, // 5
+          { x:  1, y:  1, z:  1 }, // 6
+          { x: -1, y:  1, z:  1 }, // 7
+        ];
+
+        // Faces of the cube
+        this.faces = [
+          [0, 1, 2, 3], // Back face
+          [4, 5, 6, 7], // Front face
+          [0, 1, 5, 4], // Bottom face
+          [2, 3, 7, 6], // Top face
+          [0, 3, 7, 4], // Left face
+          [1, 2, 6, 5], // Right face
+        ];
+
+        // Face colors
+        this.colors = [
+          "#FF0000", // Back face (red)
+          "#00FF00", // Front face (green)
+          "#0000FF", // Bottom face (blue)
+          "#FFFF00", // Top face (yellow)
+          "#FF00FF", // Left face (magenta)
+          "#00FFFF", // Right face (cyan)
+        ];
+
+        this.angle = 0; // Rotation angle
+      }
+
+      // --- Project 3D point into 2D space ---
+      project(vertex) {
+        const scale = 150;
+        const distance = 4;
+        const z = vertex.z + distance;
+        return {
+          x: (vertex.x / z) * scale + this.width / 2,
+          y: (vertex.y / z) * scale + this.height / 2,
+        };
+      }
+
+      // --- Rotate and transform vertices ---
+      rotateVertices() {
+        const cosA = Math.cos(this.angle);
+        const sinA = Math.sin(this.angle);
+        return this.vertices.map(vertex => {
+          const x = vertex.x * cosA - vertex.z * sinA;
+          const z = vertex.x * sinA + vertex.z * cosA;
+          return { x, y: vertex.y, z };
+        });
+      }
+
+      // --- Draw the cube ---
+      draw() {
+        const ctx = this.ctx;
+        //ctx.clearRect(0, 0, this.width, this.height);
+
+        // Rotate vertices
+        const rotatedVertices = this.rotateVertices();
+
+        // Sort faces by depth (Painter's Algorithm)
+        const sortedFaces = this.faces
+          .map(face => {
+            const avgZ = face
+              .map(index => rotatedVertices[index].z)
+              .reduce((sum, z) => sum + z, 0) / face.length;
+            return { face, avgZ };
+          })
+          .sort((a, b) => b.avgZ - a.avgZ);
+
+        // Draw faces
+        ctx.strokeStyle = "black";
+        sortedFaces.forEach(({ face }, index) => {
+          ctx.beginPath();
+          const projectedFace = face.map(idx => this.project(rotatedVertices[idx]));
+          ctx.moveTo(projectedFace[0].x, projectedFace[0].y);
+          for (let i = 1; i < projectedFace.length; i++) {
+            ctx.lineTo(projectedFace[i].x, projectedFace[i].y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = this.colors[index % this.colors.length]; // Fill face with color
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
+
+      // --- Start animation ---
+      animate() {
+        const update = () => {
+          this.angle += 0.02; // Increment rotation angle
+          this.draw();
+          requestAnimationFrame(update);
+        };
+        update();
+      }
+    }
+
+    // --- Initialize and Start Cube ---
+    const canvas = document.getElementById('cubeCanvas');
+    const cube = new Cube(canvas);
+    cube.animate();
+  </script>
+</body>
+</html>

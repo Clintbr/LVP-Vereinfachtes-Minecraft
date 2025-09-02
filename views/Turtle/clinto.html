@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Cube with Canvas</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 50px auto;
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cubeCanvas" width="1500" height="1000"></canvas>
+  <script>
+    // --- Setup ---
+    const canvas = document.getElementById('cubeCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // --- 3D Cube Data ---
+    const platedge = [
+      [2, 6], [3, 7], [2, 3],[6, 7], // Back face
+    ];
+
+    const walledge = [
+      [0, 1], [1, 2], [2, 3], [3, 0],
+    ]
+
+    const cubeVertices = [
+      { x: -1, y: -1, z: -1 }, // 0
+      { x:  1, y: -1, z: -1 }, // 1
+      { x:  1, y:  1, z: -1 }, // 2
+      { x: -1, y:  1, z: -1 }, // 3
+      { x: -1, y: -1, z:  1 }, // 4
+      { x:  1, y: -1, z:  1 }, // 5
+      { x:  1, y:  1, z:  1 }, // 6
+      { x: -1, y:  1, z:  1 }, // 7
+    ];
+
+    const cubeEdges = [
+      [0, 1], [1, 2], [2, 3], [3, 0], // Back face
+      [4, 5], [5, 6], [6, 7], [7, 4], // Front face
+      [0, 4], [1, 5], [2, 6], [3, 7], // Connecting edges
+    ];
+
+    // --- Projection ---
+    function project(cube, distance) {
+      const scale = 550; // Scale for better visibility
+      //const distance = 4; // Distance of the camera
+      const z = cube.z + distance;
+      return {
+        x: (cube.x / z) * scale + width / 2,
+        y: (cube.y / z) * scale + height / 2
+      };
+    }
+
+    function newSoil(cube, angle, distance, long, large, tief) {
+      const newC = cube.map(cube => {
+        const x = cube.x - long;
+        const y = cube.y - large;
+        const z = cube.z - tief;
+        return {x, y, z};
+      })
+      const rotatedVertices = newC.map(cube => {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        // Simple Y-axis rotation
+        const x = cube.x * cosA - cube.z * sinA;
+        const z = cube.x * sinA + cube.z * cosA;
+
+        return { x, y: cube.y, z };
+      });
+
+      // Draw edges
+      ctx.strokeStyle = "green";
+      ctx.beginPath();
+      for (const edge of platedge) {
+        const v1 = project(rotatedVertices[edge[0]], distance);
+        const v2 = project(rotatedVertices[edge[1]], distance);
+        ctx.moveTo(v1.x, v1.y);
+        ctx.lineTo(v2.x, v2.y);
+      }
+      ctx.stroke();
+    } 
+
+    function newCube(cube, angle, distance, long, large, tief) {
+      const newC = cube.map(cube => {
+        const x = cube.x - long;
+        const y = cube.y - large;
+        const z = cube.z - tief;
+        return {x, y, z};
+      })
+      const rotatedVertices = newC.map(cube => {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        // Simple Y-axis rotation
+        const x = cube.x * cosA - cube.z * sinA;
+        const z = cube.x * sinA + cube.z * cosA;
+
+        return { x, y: cube.y, z };
+      });
+
+      // Draw edges
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      for (const edge of cubeEdges) {
+        const v1 = project(rotatedVertices[edge[0]], distance);
+        const v2 = project(rotatedVertices[edge[1]], distance);
+        ctx.moveTo(v1.x, v1.y);
+        ctx.lineTo(v2.x, v2.y);
+      }
+      ctx.stroke();
+    }
+    
+    function newWall(cube, angle, distance, long, large, tief) {
+      const newC = cube.map(cube => {
+        const x = cube.x - long;
+        const y = cube.y - large;
+        const z = cube.z - tief;
+        return {x, y, z};
+      })
+      const rotatedVertices = newC.map(cube => {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        // Simple Y-axis rotation
+        const x = cube.x * cosA - cube.z * sinA;
+        const z = cube.x * sinA + cube.z * cosA;
+
+        return { x, y: cube.y, z };
+      });
+
+      // Draw edges
+      ctx.strokeStyle = "black";
+      ctx.beginPath();
+      for (const edge of walledge) {
+        const v1 = project(rotatedVertices[edge[0]], distance);
+        const v2 = project(rotatedVertices[edge[1]], distance);
+        ctx.moveTo(v1.x, v1.y);
+        ctx.lineTo(v2.x, v2.y);
+      }
+      ctx.stroke();
+    }
+
+    // --- Draw the Cube ---
+    function drawCube(angle, distance) {
+      //ctx.clearRect(0, 0, width, height);
+
+      // Rotate and project each vertex
+      const rotatedVertices = cubeVertices.map(cube => {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        // Simple Y-axis rotation
+        const x = cube.x * cosA - cube.z * sinA;
+        const z = cube.x * sinA + cube.z * cosA;
+
+        return { x, y: cube.y, z };
+      });
+
+      // Draw edges
+      ctx.strokeStyle = "black";
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      for (const edge of cubeEdges) {
+        const v1 = project(rotatedVertices[edge[0]], distance);
+        const v2 = project(rotatedVertices[edge[1]], distance);
+        ctx.moveTo(v1.x, v1.y);
+        ctx.lineTo(v2.x, v2.y);
+      }
+      ctx.stroke();
+    }
+
+    // --- Animation Loop ---
+    let angle = 4;
+    /*
+    function animate() {
+      angle += 0.02; // Rotate cube
+      drawCube(angle);
+      requestAnimationFrame(animate);
+    }*/
+
+    //animate();
+    //for (let i = 4; i < 10; i++) {
+      //drawCube(angle, 4);
+      for( let i = 1; i < 100; i++ ) {
+        //newCube(cubeVertices, angle, 3, i,0,0);
+        for(let j = 1; j < 100; j++) {  
+          newSoil(cubeVertices, angle, 1, i,0,j);
+        }
+      }
+          ctx.strokeStyle = "red";
+          newCube(cubeVertices, angle, 1, 5,0,4);
+          newWall(cubeVertices, angle, 1, 3,0,4)
+        //angle += 0.1;
+        //}
+        //ctx.clearRect(500, 500, 50, 50)
+    
+  </script>
+</body>
+</html>

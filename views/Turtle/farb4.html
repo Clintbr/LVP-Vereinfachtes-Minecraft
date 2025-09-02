@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Cube with Canvas</title>
+  <style>
+  </style>
+</head>
+<body>
+  <canvas id="cubeCanvas" width="2500" height="2500" style=" display: block; margin: 50px auto; border:1px solid #000; background: #f0f0f0;"></canvas>
+  <script>
+    // --- Setup ---
+    const canvas = document.getElementById('cubeCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    var g = 5;
+
+    // --- 3D Cube Data ---
+    /*const cubeVertices = [
+        { x: -1, y: -1, z: -1 }, // 0
+        { x:  1, y: -1, z: -1 }, // 1
+        { x:  1, y:  1, z: -1 }, // 2
+        { x: -1, y:  1, z: -1 }, // 3
+        { x: -1, y: -1, z:  1 }, // 4
+        { x:  1, y: -1, z:  1 }, // 5
+        { x:  1, y:  1, z:  1 }, // 6
+        { x: -1, y:  1, z:  1 }, // 7
+    ];*/
+
+    const blockVertices = [
+        { x: -0.25, y: -0.25, z: -0.25 }, // 0
+        { x:  0.25, y: -0.25, z: -0.25 }, // 1
+        { x:  0.25, y:  0.25, z: -0.25 }, // 2
+        { x: -0.25, y:  0.25, z: -0.25 }, // 3
+        { x: -0.25, y: -0.25, z:  0.25 }, // 4
+        { x:  0.25, y: -0.25, z:  0.25 }, // 5
+        { x:  0.25, y:  0.25, z:  0.25 }, // 6
+        { x: -0.25, y:  0.25, z:  0.25 }, // 7
+    ];
+
+    const player = [
+        { x: 1, y: 1, z: 0 }, // 0
+        { x: 0, y: 1, z: 0 }, // 1
+        { x: 0, y: 0, z: 0 }, // 2
+        { x: 1, y: 0, z: 0 }, // 3
+        { x: 1, y: 1, z: 1 }, // 4
+        { x: 0, y: 1, z: 1 }, // 5
+        { x: 0, y: 0, z: 1 }, // 6
+        { x: 1, y: 0, z: 1 }, // 7
+        { x: 1.3, y: 1, z: -0.3 }, // 0
+        { x: -0.3, y: 1, z: -0.3 }, // 1
+        { x: -0.3, y: 2, z: -0.3 }, // 2
+        { x: 1.3, y: 2, z: -0.3 }, // 3
+        { x: 1.3, y: 1, z: 1.3 }, // 4
+        { x: -0.3, y: 1, z: 1.3 }, // 5
+        { x: -0.3, y: 2, z: 1.3 }, // 6
+        { x: 1.3, y: 2, z: 1.3 }, // 7
+    ];
+
+    const playerFaces = [
+        [8, 9, 10, 11], // Back face
+        [12, 13, 14, 15], // Front face
+        [8, 9, 13, 12], // Bottom face
+        [10, 11, 15, 14], // Top face............
+        [8, 11, 15, 12], // Left face
+        [9, 10, 14, 13], // Right face
+
+        [0, 1, 2, 3], // Back face
+        [4, 5, 6, 7], // Front face
+        [0, 1, 5, 4], // Bottom face
+        [2, 3, 7, 6], // Top face.................
+        [0, 3, 7, 4], // Left face
+        [1, 2, 6, 5], // Right face
+        
+    ];
+
+    const cubeFaces = [
+        [0, 1, 2, 3], // Back face
+        [4, 5, 6, 7], // Front face
+        [0, 1, 5, 4], // Bottom face
+        [2, 3, 7, 6], // Top face
+        [0, 3, 7, 4], // Left face
+        [1, 2, 6, 5], // Right face
+    ];
+
+    // --- Projection ---
+    function project(cube, distance) {
+      const scale = 1000; // Scale for better visibility
+      //const distance = 4; // Distance of the camera
+      const z = cube.z + distance;
+      return {
+        x: (cube.x / z) * scale + width / 2,
+        y: (cube.y / z) * scale + height / 2
+      };
+    }
+
+    function drawFloor(cube, angle, distance, long, large, tief, color, pos) {
+        //ctx.clearRect(0, 0, width, height);
+        const newCube = cube.map(cube => {
+            const x = cube.x - long;
+            const y = cube.y - large;
+            const z = cube.z - tief;
+            return {x, y, z};
+        })
+      // Rotate and project each vertex
+        const rotatedVertices = newCube.map(cube => {
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+
+            // Simple Y-axis rotation
+            const x = cube.x * cosA - cube.z * sinA;
+            const z = cube.x * sinA + cube.z * cosA;
+
+            return { x, y: cube.y, z };
+        });
+
+      // Draw faces (in yellow)
+        ctx.fillStyle = color;
+        ctx.strokeStyle = "brown";
+      
+        ctx.beginPath();
+        const projectedFace = playerFaces[pos].map(index => project(rotatedVertices[index], distance));
+        ctx.moveTo(projectedFace[0].x, projectedFace[0].y);
+        for (let i = 1; i < projectedFace.length; i++) {
+          ctx.lineTo(projectedFace[i].x, projectedFace[i].y);
+        }
+        ctx.closePath();
+        ctx.fill(); // Fill the face with yellow
+        ctx.stroke(); // Draw the edges  
+    } 
+    // --- Draw the Cube ---
+    function drawCube(cube, angle, distance, long, large, tief, faces, color) {
+      //ctx.clearRect(0, 0, width, height);
+        const newCube = cube.map(cube => {
+                const x = cube.x - long;
+                const y = cube.y - large;
+                const z = cube.z - tief;
+                return {x, y, z};
+            })
+      // Rotate and project each vertex
+        const rotatedVertices = newCube.map(cube => {
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+
+            // Simple Y-axis rotation
+            const x = cube.x * cosA - cube.z * sinA;
+            const z = cube.x * sinA + cube.z * cosA;
+
+            return { x, y: cube.y, z };
+        });
+
+        // Sort faces by their average depth (Painter's Algorithm)
+        const sortedFaces = faces
+            .map(face => {
+            const avgZ = face
+                .map(index => rotatedVertices[index].z)
+                .reduce((sum, z) => sum + z, 0) / face.length;
+            return { face, avgZ };
+            })
+            .sort((a, b) => b.avgZ - a.avgZ); // Sort back-to-front
+
+      // Draw faces (in yellow)
+        const faceColors = [color];
+        ctx.strokeStyle = "brown";
+        sortedFaces.forEach(({face}, index) => {
+            ctx.beginPath();
+            const projectedFace = face.map(idx => project(rotatedVertices[idx], distance));
+            ctx.moveTo(projectedFace[0].x, projectedFace[0].y);
+            for (let j = 1; j < projectedFace.length; j++) {
+                ctx.lineTo(projectedFace[j].x, projectedFace[j].y);
+                    //drawFloor(cube, angle, distance, long, large, tief, color, j); 
+            }
+            ctx.closePath();
+            ctx.fillStyle = faceColors[index % faceColors.length]; // Use a unique color for each face
+            ctx.fill(); // Fill the face with black
+            ctx.stroke(); // Draw the edges
+      });
+    }
+
+    // --- Animation Loop ---
+    let angle = 4;
+    function animate() {
+      //angle += 0.02; // Rotate cube
+      ctx.stroke();
+      //drawCube(angle);
+      for( let i = 20; i > 0; i-=0.5) {
+       // newCube(cubeVertices, angle, 3, i,0,0);
+        for(let j = 20; j > 0; j-=0.5) {     
+            drawCube(blockVertices, angle, 4, j, -3, i, cubeFaces, 'black');
+        }
+      }
+      //requestAnimationFrame(animate);
+    }
+
+    animate();
+    ctx.isPendown = false;
+    for( let i = 20; i > 0; i-=0.5) {
+       // newCube(cubeVertices, angle, 3, i,0,0);
+        for(let j = 20; j > 0; j-=0.5) {     
+            drawFloor(blockVertices, angle, 4, j, -2.5, i, "green", 9);
+        }
+      }
+    ctx.fillStyle = "yellow";
+    drawFloor(blockVertices, angle, 4, 0, -1.5, 2, 0xFFFF00, 9);
+    drawCube(player, angle, 4, 3, -1.5, 3, playerFaces, "yellow");
+
+    /*for( let i = 16; i > 0; i-=1 ) {
+        for(let j = 16; j > 0; j-=1) {
+            drawCube(cubeVertices, angle, 4, j, -4, i);
+            drawCube(cubeVertices, angle, 4, j, -3.5, i);
+            drawCube(cubeVertices, angle, 4, j, -3, i);
+        }
+      }*/
+
+
+  </script>
+</body>
+</html>

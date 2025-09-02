@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinton Graphics</title>
+</head>
+<body>
+    <canvas id="clintCanvas" width="500" height="500" style="border:1px solid #000;"></canvas>
+    <script src="clint.js"></script>
+    <script>
+        // Example usage:
+        const canvas = document.getElementById('clintCanvas');
+        const clint = new Clint(canvas);
+        // Draw a square
+        clint.fillrect(50, 50, 100, 100, 'red');
+    </script>
+</body>
+</html>

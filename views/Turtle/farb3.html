@@ -1,0 +1,244 @@
+
+class Clint {
+  constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.reset();
+      this.blockVertices = [
+          { x: -0.25, y: -0.25, z: -0.25 }, // 0
+          { x:  0.25, y: -0.25, z: -0.25 }, // 1
+          { x:  0.25, y:  0.25, z: -0.25 }, // 2
+          { x: -0.25, y:  0.25, z: -0.25 }, // 3
+          { x: -0.25, y: -0.25, z:  0.25 }, // 4
+          { x:  0.25, y: -0.25, z:  0.25 }, // 5
+          { x:  0.25, y:  0.25, z:  0.25 }, // 6
+          { x: -0.25, y:  0.25, z:  0.25 }, // 7
+      ];
+          
+      this.player = [
+          { x: 1, y: 1, z: 0 }, // 0
+          { x: 0, y: 1, z: 0 }, // 1
+          { x: 0, y: 0, z: 0 }, // 2
+          { x: 1, y: 0, z: 0 }, // 3
+          { x: 1, y: 1, z: 1 }, // 4
+          { x: 0, y: 1, z: 1 }, // 5
+          { x: 0, y: 0, z: 1 }, // 6
+          { x: 1, y: 0, z: 1 }, // 7
+          { x: 1.3, y: 1, z: -0.3 }, // 0
+          { x: -0.3, y: 1, z: -0.3 }, // 1
+          { x: -0.3, y: 2, z: -0.3 }, // 2
+          { x: 1.3, y: 2, z: -0.3 }, // 3
+          { x: 1.3, y: 1, z: 1.3 }, // 4
+          { x: -0.3, y: 1, z: 1.3 }, // 5
+          { x: -0.3, y: 2, z: 1.3 }, // 6
+          { x: 1.3, y: 2, z: 1.3 }, // 7
+      ];
+      
+      this.playerFaces = [
+          [8, 9, 10, 11], // Back face
+          [12, 13, 14, 15], // Front face
+          [8, 9, 13, 12], // Bottom face
+          [10, 11, 15, 14], // Top face............
+          [8, 11, 15, 12], // Left face
+          [9, 10, 14, 13], // Right face
+      
+          [0, 1, 2, 3], // Back face
+          [4, 5, 6, 7], // Front face
+          [0, 1, 5, 4], // Bottom face
+          [2, 3, 7, 6], // Top face.................
+          [0, 3, 7, 4], // Left face
+          [1, 2, 6, 5], // Right face
+          
+      ];
+      
+      cubeFaces = [
+          [0, 1, 2, 3], // Back face
+          [4, 5, 6, 7], // Front face
+          [0, 1, 5, 4], // Bottom face
+          [2, 3, 7, 6], // Top face
+          [0, 3, 7, 4], // Left face
+          [1, 2, 6, 5], // Right face
+      ];
+  }
+
+  project(cube, distance) {
+      const scale = 200; // Scale for better visibility
+      //const distance = 4; // Distance of the camera
+      const z = cube.z + distance;
+      return {
+        x: (cube.x / z) * scale + this.canvas.width / 2,
+        y: (cube.y / z) * scale + this.canvas.height / 2
+      };
+  }
+  /*animate(i, j, k) {
+      //angle += 0.02; // Rotate cube
+      distance += 0.01;
+      a(angle, distance);
+      requestAnimationFrame(animate);
+  }*/
+
+  reset() {
+      this.ctx.reset();
+      this.x = this.canvas.width / 1.5;
+      this.y = this.canvas.height / 1.5;
+      this.angle = 4;
+      this.penDown();
+      this.color("black");
+  }
+
+  penDown() {
+      this.isPenDown = true;
+  }
+
+  penUp() {
+      this.isPenDown = false;
+  }
+
+  forward(distance) {
+      const radians = (this.angle * Math.PI) / 180;
+      const newX = this.x + distance * Math.cos(radians);
+      const newY = this.y + distance * Math.sin(radians);
+
+      if (this.isPenDown) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.x, this.y);
+          this.ctx.lineTo(newX, newY);
+          this.ctx.stroke();
+      }
+      this.x = newX;
+      this.y = newY;
+  }
+
+  backward(distance) {
+      this.forward(-distance);
+  }
+
+  right(degrees) {
+      this.angle += degrees;
+  }
+
+  left(degrees) {
+      this.angle -= degrees;
+  }
+
+  color(color) {
+      this.ctx.strokeStyle = color;
+  }
+
+  lineWidth(width) {
+      this.ctx.lineWidth = width;
+  }
+
+  text(text, font = '10px sans-serif', align = 'center') {
+      const radians = (this.angle * Math.PI) / 180 + Math.PI / 2.0;
+      this.ctx.save();
+      this.ctx.translate(this.x, this.y);
+      this.ctx.rotate(radians);
+      this.ctx.font = font;
+      this.ctx.fillStyle = this.ctx.strokeStyle;
+      this.ctx.textAlign = align;
+      this.ctx.fillText(text, 0, 0);
+      this.ctx.restore();
+  }
+  moveTo(x, y) {
+      this.x = x;
+      this.y = y;
+  }
+
+  lineTo(x, y) {
+      const originalPenState = this.isPenDown;
+      this.isPenDown = true;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.x, this.y);
+      this.ctx.lineTo(x, y);
+      this.ctx.stroke();
+
+      this.x = x;
+      this.y = y;
+
+      this.isPenDown = originalPenState;
+  }
+  draw2D(cube, angle, distance, width, height, depth, faces, color, pos) {
+      //ctx.clearRect(0, 0, width, height);
+      const newCube = cube.map(cube => {
+          const x = cube.x - width;
+          const y = cube.y - height;
+          const z = cube.z - depth;
+          return {x, y, z};
+      })
+    // Rotate and project each vertex
+      const rotatedVertices = newCube.map(cube => {
+          const cosA = Math.cos(angle);
+          const sinA = Math.sin(angle);
+
+          // Simple Y-axis rotation
+          const x = cube.x * cosA - cube.z * sinA;
+          const z = cube.x * sinA + cube.z * cosA;
+
+          return { x, y: cube.y, z };
+      });
+
+    // Draw faces (in yellow)
+      this.ctx.fillStyle = color;
+      this.ctx.strokeStyle = "brown";
+    
+      this.ctx.beginPath();
+      const projectedFace = faces[pos].map(index => project(rotatedVertices[index], distance));
+      this.ctx.moveTo(projectedFace[0].x, projectedFace[0].y);
+      for (let i = 1; i < projectedFace.length; i++) {
+        this.ctx.lineTo(projectedFace[i].x, projectedFace[i].y);
+      }
+      this.ctx.closePath();
+      this.ctx.fill(); // Fill the face with color
+      this.ctx.stroke(); // Draw the edges  
+  }
+
+  draw3D(angle, distance, width, height, depth, color) {
+      //ctx.clearRect(0, 0, width, height);
+        
+        const newCube = blockVertices.map(cube => {
+                const x = cube.x - width;
+                const y = cube.y - height;
+                const z = cube.z - depth;
+                return {x, y, z};
+            })
+      // Rotate and project each vertex
+        const rotatedVertices = newCube.map(cube => {
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+
+            // Simple Y-axis rotation
+            const x = cube.x * cosA - cube.z * sinA;
+            const z = cube.x * sinA + cube.z * cosA;
+
+            return { x, y: cube.y, z };
+        });
+
+        // Sort faces by their average depth (Painter's Algorithm)
+        const sortedFaces = cubeFaces
+            .map(face => {
+            const avgZ = face
+                .map(index => rotatedVertices[index].z)
+                .reduce((sum, z) => sum + z, 0) / face.length;
+            return { face, avgZ };
+            })
+            .sort((a, b) => b.avgZ - a.avgZ); // Sort back-to-front
+
+      // Draw faces (in yellow)
+        const faceColors = [color];
+        this.ctx.strokeStyle = "brown";
+        sortedFaces.forEach(({face}, index) => {
+            this.ctx.beginPath();
+            const projectedFace = face.map(idx => project(rotatedVertices[idx], distance));
+            moveTo(projectedFace[0].x, projectedFace[0].y);
+            for (let j = 1; j < projectedFace.length; j++) {
+                lineTo(projectedFace[j].x, projectedFace[j].y); 
+            }
+            this.ctx.closePath();
+            this.ctx.fillStyle = faceColors[index % faceColors.length]; // Use a unique color for each face
+            this.ctx.fill(); // Fill the face with black
+            this.ctx.stroke(); // Draw the edges
+      });
+  }
+}

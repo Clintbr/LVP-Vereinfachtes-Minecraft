@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Cube with Class</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 50px auto;
+      border: 1px solid #000;
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cubeCanvas" width="2500" height="2500"></canvas>
+  <script>
+    class CubeRenderer {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
+        this.blockVertices = [
+          { x: -0.25, y: -0.25, z: -0.25 }, // 0
+          { x:  0.25, y: -0.25, z: -0.25 }, // 1
+          { x:  0.25, y:  0.25, z: -0.25 }, // 2
+          { x: -0.25, y:  0.25, z: -0.25 }, // 3
+          { x: -0.25, y: -0.25, z:  0.25 }, // 4
+          { x:  0.25, y: -0.25, z:  0.25 }, // 5
+          { x:  0.25, y:  0.25, z:  0.25 }, // 6
+          { x: -0.25, y:  0.25, z:  0.25 }, // 7
+        ];
+        this.cubeFaces = [
+          [0, 1, 2, 3], // Back face
+          [4, 5, 6, 7], // Front face
+          [0, 1, 5, 4], // Bottom face
+          [2, 3, 7, 6], // Top face
+          [0, 3, 7, 4], // Left face
+          [1, 2, 6, 5], // Right face
+        ];
+      }
+
+      project(vertex, distance) {
+        const scale = 1000; // Scale for better visibility
+        const z = vertex.z + distance;
+        return {
+          x: (vertex.x / z) * scale + this.width / 2,
+          y: (vertex.y / z) * scale + this.height / 2,
+        };
+      }
+
+      calculateAverageDepth(vertices, face) {
+        // Calculate the average z-depth of a face
+        return face
+          .map(idx => vertices[idx].z)
+          .reduce((sum, z) => sum + z, 0) / face.length;
+      }
+
+      drawCube(angle, distance, position, color) {
+        const translatedVertices = this.blockVertices.map(vertex => {
+          return {
+            x: vertex.x + position.x,
+            y: vertex.y + position.y,
+            z: vertex.z + position.z,
+          };
+        });
+
+        const rotatedVertices = translatedVertices.map(vertex => {
+          const cosA = Math.cos(angle);
+          const sinA = Math.sin(angle);
+          const x = vertex.x * cosA - vertex.z * sinA;
+          const z = vertex.x * sinA + vertex.z * cosA;
+          return { x, y: vertex.y, z };
+        });
+
+        // Sort faces by average depth
+        const sortedFaces = this.cubeFaces
+          .map(face => ({
+            face,
+            avgDepth: this.calculateAverageDepth(rotatedVertices, face),
+          }))
+          .sort((a, b) => b.avgDepth - a.avgDepth);
+
+        // Draw sorted faces
+        const ctx = this.ctx;
+        sortedFaces.forEach(({ face }) => {
+          ctx.beginPath();
+          const projectedFace = face.map(idx =>
+            this.project(rotatedVertices[idx], distance)
+          );
+          ctx.moveTo(projectedFace[0].x, projectedFace[0].y);
+          for (let i = 1; i < projectedFace.length; i++) {
+            ctx.lineTo(projectedFace[i].x, projectedFace[i].y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.strokeStyle = "black";
+          ctx.stroke();
+        });
+      }
+
+      drawScene(angle, distance, cubes) {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        // Sort cubes by their average depth
+        const sortedCubes = cubes
+          .map(cube => ({
+            ...cube,
+            avgDepth: cube.position.z,
+          }))
+          .sort((a, b) => b.avgDepth - a.avgDepth);
+
+        // Draw cubes in sorted order
+        sortedCubes.forEach(cube => {
+          this.drawCube(angle, distance, cube.position, cube.color);
+        });
+      }
+    }
+
+    // --- Usage ---
+    const renderer = new CubeRenderer("cubeCanvas");
+
+    let angle = 0;
+
+    // Array of cubes to draw
+    const cubes = [
+      { position: { x: 0, y: 0, z: 4 }, color: "red" },
+      { position: { x: 1, y: 1, z: 6 }, color: "blue" },
+      { position: { x: -1, y: -1, z: 2 }, color: "green" },
+    ];
+
+    function animate() {
+      angle += 0.02;
+      renderer.drawScene(angle, 4, cubes);
+      //requestAnimationFrame(animate);
+    }
+
+    animate();
+    //ctx.fillStyle = "black";
+    renderer.ctx.fillRect(50, 1500, renderer.width - 1000, renderer.height -1500, "black");
+  </script>
+</body>
+</html>

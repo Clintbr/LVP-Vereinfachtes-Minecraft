@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Opaque Cube</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 50px auto;
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cubeCanvas" width="500" height="500"></canvas>
+  <script>
+    // --- Setup ---
+    const canvas = document.getElementById('cubeCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // --- 3D Cube Data ---
+    const cubeVertices = [
+      { x: -1, y: -1, z: -1 }, // 0
+      { x:  1, y: -1, z: -1 }, // 1
+      { x:  1, y:  1, z: -1 }, // 2
+      { x: -1, y:  1, z: -1 }, // 3
+      { x: -1, y: -1, z:  1 }, // 4
+      { x:  1, y: -1, z:  1 }, // 5
+      { x:  1, y:  1, z:  1 }, // 6
+      { x: -1, y:  1, z:  1 }, // 7
+    ];
+
+    const cubeFaces = [
+      [0, 1, 2, 3], // Back face
+      [4, 5, 6, 7], // Front face
+      [0, 1, 5, 4], // Bottom face
+      [2, 3, 7, 6], // Top face
+      [0, 3, 7, 4], // Left face
+      [1, 2, 6, 5], // Right face
+    ];
+
+    // --- Projection ---
+    function project(vertex) {
+      const scale = 150; // Scale for better visibility
+      const distance = 4; // Distance of the camera
+      const z = vertex.z + distance;
+      return {
+        x: (vertex.x / z) * scale + width / 2,
+        y: (vertex.y / z) * scale + height / 2
+      };
+    }
+
+    // --- Draw the Cube ---
+    function drawCube(angle) {
+      ctx.clearRect(0, 0, width, height);
+
+      // Rotate and project each vertex
+      const rotatedVertices = cubeVertices.map(vertex => {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        // Simple Y-axis rotation
+        const x = vertex.x * cosA - vertex.z * sinA;
+        const z = vertex.x * sinA + vertex.z * cosA;
+
+        return { x, y: vertex.y, z };
+      });
+
+      // Sort faces by their average depth (Painter's Algorithm)
+      const sortedFaces = cubeFaces
+        .map(face => {
+          const avgZ = face
+            .map(index => rotatedVertices[index].z)
+            .reduce((sum, z) => sum + z, 0) / face.length;
+          return { face, avgZ };
+        })
+        .sort((a, b) => b.avgZ - a.avgZ); // Sort back-to-front
+
+      // Draw faces
+      const faceColors = [
+        "#FF0000", // Back face (red)
+        "#00FF00", // Front face (green)
+        "#0000FF", // Bottom face (blue)
+        "#FFFF00", // Top face (yellow)
+        "#FF00FF", // Left face (magenta)
+        "#00FFFF", // Right face (cyan)
+      ];
+
+      ctx.strokeStyle = "black";
+      sortedFaces.forEach(({ face }, index) => {
+        ctx.beginPath();
+        const projectedFace = face.map(idx => project(rotatedVertices[idx]));
+        ctx.moveTo(projectedFace[0].x, projectedFace[0].y);
+        for (let i = 1; i < projectedFace.length; i++) {
+          ctx.lineTo(projectedFace[i].x, projectedFace[i].y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = faceColors[index % faceColors.length]; // Assign unique color to each face
+        ctx.fill(); // Fill the face with an opaque color
+        ctx.stroke(); // Draw the edges
+      });
+    }
+
+    // --- Animation Loop ---
+    let angle = 0;
+    function animates() {
+      angle += 0.02; // Rotate cube
+      drawCube(angle);
+      requestAnimationFrame(animates);
+    }
+
+    animates();
+  </script>
+</body>
+</html>

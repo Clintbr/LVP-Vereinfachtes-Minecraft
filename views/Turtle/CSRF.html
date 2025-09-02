@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pokemon ID Finder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.3/new.min.css">
+</head>
+<body>
+    <header>
+        <h1>What's the Pokemon ID?</h1>
+
+        <!-- Search Form -->
+        <form id="pokemon-form">
+            <label for="pokemon">Enter Pokemon Name:</label>
+            <input type="text" id="pokemon" name="pokemon" required>
+            <button type="submit">Search</button>
+        </form>
+    </header>
+
+    <main>
+        <h2>Results</h2>
+        <p>You searched for:</p>
+        <p>Searched Name: <span id="pokemon-name"></span></p>
+        <p>Pokemon ID: <span id="pokemon-id"></span></p>
+    </main>
+
+    <script>
+    const params = new URLSearchParams(window.location.search);
+    const pokemon = params.get('pokemon');
+    if (pokemon) {
+        // XSS: <img src=x onerror="alert('xss');">
+        const pokemonName = document.getElementById('pokemon-name');
+        pokemonName.innerHTML = pokemon;
+
+        // NOT IMPORTANT FOR XSS: Loads type from PokeAPI
+        const pokemonId = document.getElementById('pokemon-id');
+        async function fetchPokemonId(query) {
+            if (pokemon) {
+                try {
+                    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon}`);
+                    if (!response.ok) {
+                        throw new Error('Pokemon not found');
+                    }
+                    const data = await response.json();
+
+                    pokemonId.textContent = data.id;
+                } catch (error) {
+                    pokemonId.textContent = 'Error: ' + error.message;
+                }
+            } else {
+                pokemonId.textContent = 'Please enter a valid Pokemon name.';
+            }
+        }
+        fetchPokemonId();
+    }
+    </script>
+</body>
+</html>
