@@ -22,7 +22,7 @@ Entwickelt als Projekt für *Programmieren 2* an der THM von **Clint Bryan Nguen
 
 ## 🛠️ Technologien
 
-- **Java 17+**  
+- **JDK 21**  
 - **JavaFX/Custom Rendering via Canva API Wrapper**  
 - **OOP-Prinzipien**: Interfaces, Enums, Klassenhierarchien  
 - Nutzung von **java.util**: `ArrayList`, `List`, `Random`, `LocalTime`, `Stream`, `Collectors` usw.  
@@ -47,4 +47,18 @@ minecraft.buildBridgeLeft(-1, -8, 1.5, 10, 10, 10);``
 5. Mission starten: ``minecraft.mission(1); // Mission 1: Destroy the Forest <br>
 minecraft.mission(2); // Mission 2: Find your lost friend``
 
+## 🎯 Lernziele
+
+OOP-Design in Java (Klassen, Interfaces, Enums, Records)
+
+3D-Modellierung & Rendering via API-Anbindung
+
+Event-Handling, Zustandsverwaltung und Simulation
+
+Datenstrukturen (List, Stream, etc.) praxisnah einsetzen
+
+## 👤 Autor
+
+Clint Bryan Nguena
+Technische Hochschule Mittelhessen – Projekt Programmieren 2
 
