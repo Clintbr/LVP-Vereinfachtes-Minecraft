@@ -29,5 +29,9 @@ Entwickelt als Projekt für *Programmieren 2* an der THM von **Clint Bryan Nguen
 
 ---
 
-## 📂 Projektstruktur
+## 🎮 Beispiele
+1. Welt erstellen ``Minecrafts minecraft = new Minecrafts(30, 10, 30);
+minecraft.go();``
+
+2. 
 
