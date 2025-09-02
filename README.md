@@ -30,21 +30,23 @@ Entwickelt als Projekt für *Programmieren 2* an der THM von **Clint Bryan Nguen
 ---
 
 ## 🎮 Beispiele
-1. Welt erstellen ```Minecrafts minecraft = new Minecrafts(30, 10, 30);
+1. Welt erstellen
+
+   ```Minecrafts minecraft = new Minecrafts(30, 10, 30);
 minecraft.go();
 
-2. Spieler hinzufügen und bewegen: ``minecraft.play(200, 200, 200); // Spielerfarbe
+3. Spieler hinzufügen und bewegen: ``minecraft.play(200, 200, 200); // Spielerfarbe
 minecraft.leftMove();
 minecraft.forwardMove();
 minecraft.drawWorld();``
 
-3. Häuser & Strukturen bauen: ``minecraft.buildHouse(4, 4, 10, 0, 50);
+4. Häuser & Strukturen bauen: ``minecraft.buildHouse(4, 4, 10, 0, 50);
 minecraft.buildPyramid(20, 2, 20, 10, 50);
 minecraft.buildBridgeLeft(-1, -8, 1.5, 10, 10, 10);``
 
-4. Alles zerstören: ``minecraft.megaDestruction();``
+5. Alles zerstören: ``minecraft.megaDestruction();``
 
-5. Mission starten: ``minecraft.mission(1); // Mission 1: Destroy the Forest <br>
+6. Mission starten: ``minecraft.mission(1); // Mission 1: Destroy the Forest <br>
 minecraft.mission(2); // Mission 2: Find your lost friend``
 
 ## 🎯 Lernziele
